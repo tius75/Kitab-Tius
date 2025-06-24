@@ -1,26 +1,24 @@
 {
-  "name": "Kitab Mantra",
-  "short_name": "Kitab Mantra Tius",
-  "description": "Aplikasi Mantra Tius.",
-  "start_url": "./",
+  "name": "Kasir POS Tius System",
+  "short_name": "Kasir POS",
+  "description": "Aplikasi Kasir Point of Sale oleh Tius",
+  "start_url": "/Pos-Kasir/",
   "display": "standalone",
-  "background_color": "#f0f8ff",
-  "theme_color": "#D30000",
+  "background_color": "#ffffff",
+  "theme_color": "#212529",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "favicon32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "logo192.png",
+      "src": "/Pos-Kasir/logo192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "logo.png",
+      "src": "/Pos-Kasir/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
