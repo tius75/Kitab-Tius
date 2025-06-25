@@ -457,27 +457,27 @@
             </div>
         </header>
 
-        <div class="page active" id="auth-page">
-            <h2>Login atau Daftar</h2>
-            <div id="auth-form">
-                <input type="email" class="input-field" id="auth-email" placeholder="Email" required>
-                <input type="password" class="input-field" id="auth-password" placeholder="Password" required>
-                <button class="btn" id="login-btn">
-                    <span id="login-btn-text">Login</span>
-                    <span id="login-spinner" class="loading-spinner" style="display: none;"></span>
-                </button>
-                <button class="btn" id="register-btn" style="margin-top: 10px;">
-                    <span id="register-btn-text">Daftar</span>
-                    <span id="register-spinner" class="loading-spinner" style="display: none;"></span>
-                </button>
-                <button class="btn" id="fingerprint-login-btn" style="display: none;">
-                    <span id="fingerprint-login-text">Login dengan Fingerprint</span>
-                    <span id="fingerprint-login-spinner" class="loading-spinner" style="display: none;"></span>
-                </button>
-                <p style="margin-top: 15px;"><a href="#" id="forgot-password-link">Lupa Password?</a></p>
-                <p id="auth-message" style="color: red; margin-top: 10px;"></p>
-            </div>
-        </div>
+<!-- Versi kitab.html tanpa tombol Daftar --><!-- Potongan di bagian auth-form yang telah DIBERSIHKAN --><div class="page active" id="auth-page">
+    <h2>Login</h2> <!-- Teks diperbarui -->
+    <div id="auth-form">
+        <input type="email" class="input-field" id="auth-email" placeholder="Email" required>
+        <input type="password" class="input-field" id="auth-password" placeholder="Password" required>
+        <button class="btn" id="login-btn">
+            <span id="login-btn-text">Login</span>
+            <span id="login-spinner" class="loading-spinner" style="display: none;"></span>
+        </button>
+        <button class="btn" id="fingerprint-login-btn" style="display: none;">
+            <span id="fingerprint-login-text">Login dengan Fingerprint</span>
+            <span id="fingerprint-login-spinner" class="loading-spinner" style="display: none;"></span>
+        </button>
+        <p style="margin-top: 15px;"><a href="#" id="forgot-password-link">Lupa Password?</a></p>
+        <p id="auth-message" style="color: red; margin-top: 10px;"></p>
+    </div>
+</div><!-- JavaScript: bagian event listener register-btn telah DIHAPUS --><!-- Kode seperti berikut telah dihapus: --><!--
+document.getElementById('register-btn').addEventListener('click', () => {
+   ...
+});
+-->
 
         <div class="page" id="home-page">
             <h2 style="margin: 20px 0 10px; color: #2c3e50;">Selamat datang di Kitab Mantra</h2>
@@ -1474,65 +1474,38 @@ function readMantra() {
         }
 
         // Authentication Handlers
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const authMessage = document.getElementById('auth-message');
+document.getElementById('login-btn').addEventListener('click', () => {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const authMessage = document.getElementById('auth-message');
 
-            if (!email || !password) {
-                authMessage.textContent = "Email dan password harus diisi.";
-                return;
-            }
+    if (!email || !password) {
+        authMessage.textContent = "Email dan password harus diisi.";
+        return;
+    }
 
-            document.getElementById('login-btn-text').style.display = 'none';
-            document.getElementById('login-spinner').style.display = 'inline-block';
+    document.getElementById('login-btn-text').style.display = 'none';
+    document.getElementById('login-spinner').style.display = 'inline-block';
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    authMessage.textContent = "Login berhasil!";
-                    currentUserId = userCredential.user.uid;
-                    updateLoginStatus(true, email);
-                    localStorage.setItem('lastLoggedInEmail', email); // Simpan email
-                    loadMantras();
-                    showPage('home-page');
-                })
-                .catch((error) => {
-                    authMessage.textContent = "Login gagal: " + error.message;
-                    console.error("Login Error:", error);
-                })
-                .finally(() => {
-                    document.getElementById('login-btn-text').style.display = 'inline';
-                    document.getElementById('login-spinner').style.display = 'none';
-                });
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            authMessage.textContent = "Login berhasil!";
+            currentUserId = userCredential.user.uid;
+            updateLoginStatus(true, email);
+            localStorage.setItem('lastLoggedInEmail', email);
+            loadMantras();
+            showPage('home-page');
+        })
+        .catch((error) => {
+            authMessage.textContent = "Login gagal: " + error.message;
+            console.error("Login Error:", error);
+        })
+        .finally(() => {
+            document.getElementById('login-btn-text').style.display = 'inline';
+            document.getElementById('login-spinner').style.display = 'none';
         });
+});
 
-        document.getElementById('register-btn').addEventListener('click', () => {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const authMessage = document.getElementById('auth-message');
-
-            if (!email || !password) {
-                authMessage.textContent = "Email dan password harus diisi.";
-                return;
-            }
-
-            document.getElementById('register-btn-text').style.display = 'none';
-            document.getElementById('register-spinner').style.display = 'inline-block';
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    authMessage.textContent = "Pendaftaran berhasil! Silakan login.";
-                    document.getElementById('auth-password').value = '';
-                })
-                .catch((error) => {
-                    authMessage.textContent = "Pendaftaran gagal: " + error.message;
-                    console.error("Register Error:", error);
-                })
-                .finally(() => {
-                    document.getElementById('register-btn-text').style.display = 'inline';
-                    document.getElementById('register-spinner').style.display = 'none';
-                });
-        });
 
         document.getElementById('fingerprint-login-btn').addEventListener('click', attemptFingerprintLogin);
 
