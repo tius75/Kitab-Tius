@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kitab Mantra</title>
+     <link rel="manifest" href="./manifest.json">
+
+  <meta name="theme-color" content="#D30000">
+
+  <link rel="apple-touch-icon" href="logo192.png">
+
+  <link rel="icon" type="image/png" href="favicon32.png">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Tahoma&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/mammoth@1.4.16/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        /* Gaya CSS tetap sama seperti sebelumnya */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            position: relative;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 3px rgba(0,0,0,0.1);
+        }
+
+        .indicator.online {
+            background-color: #2ecc71;
+            box-shadow: 0 0 5px #2ecc71;
+        }
+
+        .indicator.offline {
+            background-color: #e74c3c;
+            box-shadow: 0 0 5px #e74c3c;
+        }
+
+        .indicator.logged-in {
+            background-color: #3498db;
+            box-shadow: 0 0 5px #3498db;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background-color: #fff;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .tab-btn:hover {
+            background-color: #eee;
+        }
+
+        .tab-btn:active {
+            background-color: #ddd;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn:active {
+            background-color: #2471a3;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .input-field::placeholder {
+            color: #aaa;
+        }
+
+        #editor-container {
+            height: 480px;
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .ql-toolbar.ql-snow {
+            background-color: #eee;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 1px solid #ddd;
+            z-index: 1;
+        }
+
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* Quill custom font styles */
+        .ql-font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+        .ql-font-tahoma {
+            font-family: 'Tahoma', sans-serif;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .mantra-list {
+            list-style: none;
+            margin-top: 15px;
+            padding: 0;
+        }
+
+        .mantra-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mantra-item:last-child {
+            border-bottom: none;
+        }
+
+        .mantra-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #auth-page {
+            text-align: center;
+            padding: 30px;
+        }
+
+        #auth-page h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        #auth-form {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 30px auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
+        }
+
+        #auth-form .input-field {
+            margin-bottom: 20px;
+        }
+
+        #auth-form button.btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            font-size: 16px;
+        }
+
+        #auth-form p {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        #auth-form a {
+            color: #3498db;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #auth-form a:hover {
+            text-decoration: underline;
+        }
+
+        .loading-spinner {
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            border-top: 3px solid #3498db;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #fingerprint-login-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #27ae60;
+        }
+
+        #fingerprint-login-btn:hover {
+            background-color: #219653;
+        }
+
+        .settings-container {
+            padding: 15px;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                background-color: #f0f0f0;
+            }
+
+            .main-container {
+                width: 500px;
+                background-color: #fff;
+                min-height: auto;
+                margin: 30px;
+                box-shadow: 0 0 15px rgba(0,0,0,0.1);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+        }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Toast Notification */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Kitab Mantra Tius</h1>
+            <div class="status-indicator">
+                <span class="indicator" id="connection-status"></span>
+                <span class="indicator" id="login-status"></span>
+                <span id="user-email"></span>
+            </div>
+        </header>
+
+<div class="page active" id="auth-page">
+    <h2>Login</h2> <div id="auth-form">
+        <input type="email" class="input-field" id="auth-email" placeholder="Email" required>
+        <input type="password" class="input-field" id="auth-password" placeholder="Password" required>
+        <button class="btn" id="login-btn">
+            <span id="login-btn-text">Login</span>
+            <span id="login-spinner" class="loading-spinner" style="display: none;"></span>
+        </button>
+        <button class="btn" id="fingerprint-login-btn" style="display: none;">
+            <span id="fingerprint-login-text">Login dengan Fingerprint</span>
+            <span id="fingerprint-login-spinner" class="loading-spinner" style="display: none;"></span>
+        </button>
+        <p style="margin-top: 15px;"><a href="#" id="forgot-password-link">Lupa Password?</a></p>
+        <p id="auth-message" style="color: red; margin-top: 10px;"></p>
+    </div>
+</div><div class="page" id="home-page">
+            <h2 style="margin: 20px 0 10px; color: #2c3e50;">Selamat datang di Kitab Mantra</h2>
+            <p style="margin-bottom: 20px; color: #555;">Klik tombol di bawah ini untuk memulai menjelajahi atau menulis mantra.</p>
+            <button class="btn" onclick="showPage('main-page')" style="padding: 12px 25px; font-size: 16px;">Mulai</button>
+        </div>
+
+        <div class="page" id="main-page">
+            <div style="margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn" onclick="backupData()">💾 Backup Data</button>
+                <button class="btn" onclick="restoreData()">📤 Restore Data</button>
+                <button class="btn" onclick="importData()">⬇️ Impor Data</button>
+                <button class="btn" onclick="document.getElementById('import-doc-input').click()">📥 Impor Dokumen</button>
+                <input type="file" id="import-doc-input" accept=".docx" style="display: none;" onchange="importFromDoc(event)">
+                <input type="file" id="restore-data-input" accept=".json" style="display: none;" onchange="handleRestore(event)">
+            </div>
+        </div>
+
+        <div class="page" id="contents-page">
+            <h2 style="margin: 10px 0; color: #2c3e50;">Daftar Isi</h2>
+            <input type="text" class="input-field" id="search-contents" placeholder="Cari berdasarkan judul..." oninput="showContentsList()">
+            <ul class="mantra-list" id="contents-list"></ul>
+            <div class="pagination">
+                <button class="btn" onclick="contentsPage = Math.max(0, contentsPage - 1); showContentsList()">⬅ Prev</button>
+                <button class="btn" onclick="contentsPage++; showContentsList()">Next ➡</button>
+            </div>
+            <div style="margin-top: 10px;">
+                Jumlah File: <span id="total-files">0</span>
+            </div>
+            <button class="btn" onclick="readContentsList()">🔊 Baca Daftar Isi</button>
+        </div>
+
+        <div class="page" id="form-page">
+            <h2 id="form-title" style="margin: 10px 0; color: #2c3e50;">Mantra Baru</h2>
+            <input type="text" class="input-field" id="mantra-title" placeholder="Judul mantra" oninput="saveMantra(false)">
+            <p style="color: #777;">Terakhir diperbarui: <span id="last-updated">Belum pernah diisi</span></p>
+            <div id="editor-container"></div>
+            <input type="file" class="input-field" id="image-upload" accept="image/*" multiple style="margin: 15px 0;">
+            <div class="progress-container" id="upload-progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="images-preview"></div>
+            <div style="margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn" onclick="saveMantra(true)">💾 Simpan</button>
+                <button class="btn" onclick="toggleSpeechInput()">🎤 Speech Input</button>
+                <button class="btn" onclick="deleteMantra()">🗑️ Hapus</button>
+                <button class="btn" onclick="readMantra()">🔊 Baca</button>
+            </div>
+        </div>
+
+        <div class="page" id="view-page">
+            <h2 id="view-title" style="margin: 10px 0; color: #2c3e50;"></h2>
+            <p style="color: #777;">Terakhir diperbarui: <span id="view-updated"></span></p>
+            <div id="view-content" style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #eee;"></div>
+            <div id="view-images"></div>
+            <div style="margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn" onclick="editCurrentMantra()">✏️ Edit</button>
+                <button class="btn" onclick="readCurrentMantra()">🔊 Baca</button>
+                <a id="view-share-btn" href="#" target="_blank" style="text-decoration: none;"><button class="btn">📤 Share</button></a>
+            </div>
+        </div>
+
+        <div class="page" id="settings-page">
+            <h2 style="margin: 10px 0; color: #2c3e50;">Pengaturan</h2>
+            <div class="settings-container">
+                <div class="settings-item">
+                    <span>Fitur Sidik Jari</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fingerprint-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <button class="tab-btn" onclick="showPage('home-page')">🏠 Home</button>
+        <button class="tab-btn" onclick="showPage('contents-page')">📖 Daftar</button>
+        <button class="tab-btn" onclick="addNewMantra()">📝 Tulis</button>
+        <button class="tab-btn" onclick="showPage('settings-page')">⚙️ Setelan</button>
+        <button class="tab-btn" id="logout-btn">🚪 Logout</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4wAapW8OA4jRlxpoabIyhM5JQazSgsFg",
+            authDomain: "kitab-mantra.firebaseapp.com",
+            databaseURL: "https://kitab-mantra-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kitab-mantra",
+            storageBucket: "kitab-mantra.appspot.com",
+            messagingSenderId: "169405777772",
+            appId: "1:169405777772:web:a16983f96e400552509549",
+            measurementId: "G-3Z8VS23WQ6"
+        };
+
+        // Inisialisasi Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // Informasi Cloudinary
+        const cloudinaryCloudName = 'dbmkyd67b';
+        const cloudinaryUploadPreset = 'Kitab_mantra';
+
+        // Set timeout untuk upload
+        storage.setMaxUploadRetryTime(10000);
+        storage.setMaxOperationRetryTime(10000);
+
+        let mantras = [];
+        let contentsPage = 0;
+        let currentMantraIndex = -1;
+        let currentMantraId = null;
+        let speechRecognition;
+        let quillEditor;
+        let autoSaveTimeout;
+        let currentUserId = null;
+        let isOnline = false;
+        let fingerprintAvailable = false;
+        let isFingerprintActive = false;
+
+        // Load fingerprint active state from local storage
+        const storedFingerprintState = localStorage.getItem('isFingerprintActive');
+        if (storedFingerprintState) {
+            isFingerprintActive = storedFingerprintState === 'true';
+        }
+
+        // Fungsi untuk menampilkan toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show';
+
+            setTimeout(() => {
+                toast.className = toast.className.replace('show', '');
+            }, duration);
+        }
+
+        // Status indicators
+        function updateConnectionStatus(online) {
+            isOnline = online;
+            const statusIndicator = document.getElementById('connection-status');
+            statusIndicator.className = online ? 'indicator online' : 'indicator offline';
+            statusIndicator.title = online ? 'Online' : 'Offline';
+        }
+
+        function updateLoginStatus(loggedIn, email = '') {
+            const loginIndicator = document.getElementById('login-status');
+            const userEmailSpan = document.getElementById('user-email');
+            const fingerprintButton = document.getElementById('fingerprint-login-btn');
+
+            if (loggedIn) {
+                loginIndicator.className = 'indicator logged-in';
+                loginIndicator.title = 'Logged in';
+                userEmailSpan.textContent = email ? ` (${email})` : '';
+                fingerprintButton.style.display = 'none'; // Sembunyikan tombol fingerprint jika sudah login
+                checkFingerprintAvailability(); // Periksa ketersediaan fingerprint
+            } else {
+                loginIndicator.className = 'indicator';
+                loginIndicator.title = 'Logged out';
+                userEmailSpan.textContent = '';
+                if (fingerprintAvailable && isFingerprintActive) {
+                    fingerprintButton.style.display = 'block'; // Tampilkan tombol fingerprint jika logout dan aktif
+                } else {
+                    fingerprintButton.style.display = 'none';
+                }
+            }
+        }
+
+        // Check network status
+        function checkNetworkStatus() {
+            updateConnectionStatus(navigator.onLine);
+
+            window.addEventListener('online', () => updateConnectionStatus(true));
+            window.addEventListener('offline', () => updateConnectionStatus(false));
+        }
+
+        // Initialize status indicators
+        checkNetworkStatus();
+        updateLoginStatus(false);
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            if (pageId === 'contents-page') {
+                showContentsList();
+            } else if (pageId === 'form-page' && currentMantraId) {
+                loadMantra(currentMantraId);
+            } else if (pageId === 'form-page' && !currentMantraId) {
+                document.getElementById('form-title').textContent = 'Mantra Baru';
+                document.getElementById('mantra-title').value = '';
+                if (quillEditor) quillEditor.setContents([]);
+                document.getElementById('last-updated').textContent = 'Belum pernah diisi';
+                document.getElementById('images-preview').innerHTML = '';
+                document.getElementById('image-upload').value = ''; // Clear image input
+                document.getElementById('upload-progress').style.display = 'none';
+            } else if (pageId === 'settings-page') {
+                document.getElementById('fingerprint-toggle').checked = isFingerprintActive;
+            }
+        }
+
+        function addNewMantra() {
+            currentMantraId = null;
+            document.getElementById('form-title').textContent = 'Mantra Baru';
+            document.getElementById('mantra-title').value = '';
+            if (quillEditor) quillEditor.setContents([]);
+            document.getElementById('last-updated').textContent = 'Belum pernah diisi';
+            document.getElementById('images-preview').innerHTML = '';
+            document.getElementById('image-upload').value = ''; // Clear image input
+            document.getElementById('upload-progress').style.display = 'none';
+            showPage('form-page');
+        }
+
+        function getMantrasRef() {
+            if (!currentUserId) return null;
+            return database.ref(`users/${currentUserId}/mantras`);
+        }
+
+        function loadMantras() {
+            const mantrasRef = getMantrasRef();
+            if (!mantrasRef) return;
+
+            showLoading(true, 'contents-list');
+
+            mantrasRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    mantras = data ? Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    })) : [];
+                    showContentsList();
+                    document.getElementById('total-files').textContent = mantras.length;
+                    showLoading(false, 'contents-list');
+                })
+                .catch((error) => {
+                    console.error("Error loading mantras:", error);
+                    showLoading(false, 'contents-list');
+                    showToast('Gagal memuat data mantra. Silakan coba lagi.');
+                });
+        }
+
+        function loadMantra(mantraId) {
+            const mantraRef = database.ref(`users/${currentUserId}/mantras/${mantraId}`);
+
+            showLoading(true, 'form-page');
+
+            mantraRef.once('value')
+                .then((snapshot) => {
+                    const mantra = snapshot.val();
+                    if (mantra) {
+                        currentMantraId = mantraId;
+                        document.getElementById('form-title').textContent = mantra.title ? `Edit: ${mantra.title}` : 'Mantra Baru';
+                        document.getElementById('mantra-title').value = mantra.title || '';
+
+                        if (quillEditor) {
+                            quillEditor.clipboard.dangerouslyPasteHTML(0, mantra.content || '');
+                            quillEditor.setSelection(quillEditor.getLength(), 0);
+                        }
+
+                        document.getElementById('last-updated').textContent = mantra.updatedAt || 'Belum pernah diisi';
+                        showImagePreviews(mantra.images || []);
+
+                        // Update share button for current mantra
+                        updateShareLink(mantra.title || '', mantra.content || '');
+                    }
+                    showLoading(false, 'form-page');
+                })
+                .catch((error) => {
+                    console.error("Error loading mantra:", error);
+                    showLoading(false, 'form-page');
+                    showToast('Gagal memuat mantra. Silakan coba lagi.');
+                });
+        }
+
+        function showContentsList() {
+            const listElement = document.getElementById('contents-list');
+            const searchTerm = document.getElementById('search-contents').value.toLowerCase();
+            listElement.innerHTML = '';
+
+            const filteredMantras = mantras
+                .filter(mantra =>
+                    (mantra.title && mantra.title.toLowerCase().includes(searchTerm)) ||
+                    (mantra.content && mantra.content.toLowerCase().includes(searchTerm)))
+                .filter(mantra => mantra.title && mantra.title.trim() !== '')
+                .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+            const itemsPerPage = 10;
+            const maxPage = Math.max(0, Math.ceil(filteredMantras.length / itemsPerPage) - 1);
+
+            contentsPage = Math.max(0, Math.min(contentsPage, maxPage));
+
+            const startIndex = contentsPage * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentPageItems = filteredMantras.slice(startIndex, endIndex);
+
+            const totalFiles = filteredMantras.length;
+            document.getElementById('total-files').textContent = totalFiles;
+
+            if (currentPageItems.length > 0) {
+                currentPageItems.forEach((item, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'mantra-item';
+                    const pageNumber = startIndex + index + 1;
+                    listItem.innerHTML = `<span>${item.title || '(Tanpa Judul)'}</span> <span style="color: #777;">(Hal. ${pageNumber})</span>`;
+                    listItem.onclick = () => viewMantra(item.id);
+                    listElement.appendChild(listItem);
+                });
+            } else {
+                const emptyMessage = document.createElement('li');
+                emptyMessage.className = 'mantra-item';
+                emptyMessage.textContent = 'Tidak ada mantra yang ditemukan';
+                listElement.appendChild(emptyMessage);
+            }
+        }
+
+        function viewMantra(mantraId) {
+            const mantraRef = database.ref(`users/${currentUserId}/mantras/${mantraId}`);
+
+            showLoading(true, 'view-page');
+
+            mantraRef.once('value')
+                .then((snapshot) => {
+                    const mantra = snapshot.val();
+                    if (mantra) {
+                        currentMantraId = mantraId;
+                        document.getElementById('view-title').textContent = mantra.title || '(Tanpa Judul)';
+                        document.getElementById('view-content').innerHTML = mantra.content || '';
+                        document.getElementById('view-updated').textContent = mantra.updatedAt || 'Belum pernah diisi';
+
+                        const imagesContainer = document.getElementById('view-images');
+                        imagesContainer.innerHTML = '';
+                        (mantra.images || []).forEach(imageUrl => {
+                            const img = document.createElement('img');
+                            img.src = imageUrl;
+                            img.className = 'image-preview';
+                            imagesContainer.appendChild(img);
+                        });
+
+                        // Update share button for view page
+                        updateShareLink(mantra.title || '', mantra.content || '', 'view-share-btn');
+                    }
+                    showLoading(false, 'view-page');
+                    showPage('view-page');
+                })
+                .catch((error) => {
+                    console.error("Error viewing mantra:", error);
+                    showLoading(false, 'view-page');
+                    showToast('Gagal memuat mantra. Silakan coba lagi.');
+                });
+        }
+
+        /**
+         * Updates the WhatsApp share link with the given title and content.
+         *
+         * @param {string} title The title of the mantra.
+         * @param {string} content The content of the mantra (HTML).
+         * @param {string} [elementId='share-btn'] The ID of the anchor element to update.
+         */
+        function updateShareLink(title, content, elementId = 'share-btn') {
+            const shareButton = document.getElementById(elementId);
+            if (!shareButton) {
+                console.warn(`Share button with ID '${elementId}' not found.`);
+                return;
+            }
+
+            // Convert HTML content to plain text, preserving paragraphs and adding bullet points for lists
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+
+            // Replace <p> with newlines, remove other HTML tags
+            let plainTextContent = tempDiv.innerHTML
+                .replace(/<p[^>]*>/g, '') // Remove opening <p> tags
+                .replace(/<\/p>/g, '\n\n') // Replace closing </p> tags with double newline for paragraphs
+                .replace(/<li[^>]*>/g, '• ') // Add bullet for list items
+                .replace(/<br[^>]*>/g, '\n') // Replace <br> with newline
+                .replace(/<[^>]*>/g, ''); // Remove any remaining HTML tags
+
+            // Trim whitespace and remove excessive newlines
+            plainTextContent = plainTextContent.trim().replace(/\n\s*\n/g, '\n\n');
+
+            const shareTitle = "Kitab Mantra Tius"; // Fixed title
+
+            // Construct the WhatsApp message with clear formatting
+            const whatsappText = `*${shareTitle}*\n\n` +
+                                 `*Judul:*\n${title}\n\n` +
+                                 `*Isi Mantra:*\n${plainTextContent}`;
+
+            shareButton.href = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+        }
+
+
+        async function uploadImageToCloudinary(file, public_id = null) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', cloudinaryUploadPreset);
+                if (public_id) {
+                    formData.append('public_id', public_id);
+                }
+
+                fetch(`https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.secure_url) {
+                            resolve(data.secure_url);
+                        } else {
+                            reject(data.error || 'Gagal mengunggah ke Cloudinary');
+                        }
+                    })
+                    .catch(error => {
+                        reject(error);
+                    });
+            });
+        }
+
+        function uploadImages(event) {
+            const files = Array.from(event.target.files).slice(0, 5);
+            if (files.length === 0) return;
+
+            if (!currentUserId) {
+                showToast('Anda harus login untuk mengunggah gambar.');
+                return;
+            }
+
+            const progressContainer = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            showLoading(true, 'form-page');
+
+            const uploadPromises = files.map(file => {
+                return new Promise((resolve, reject) => {
+                    if (file.size > 10 * 1024 * 1024) {
+                        reject(`Ukuran file ${file.name} melebihi 10MB`);
+                        return;
+                    }
+
+                    const img = new Image();
+                    img.onload = async () => {
+                        if (img.width > 6080 || img.height > 4080) {
+                            reject(`Ukuran gambar melebihi batas maksimum (3080x2080px): ${file.name}`);
+                        } else {
+                            try {
+                                const imageUrl = await uploadImageToCloudinary(file);
+                                resolve(imageUrl);
+                            } catch (error) {
+                                console.error("Cloudinary upload error:", error);
+                                reject('Gagal mengunggah gambar ke Cloudinary: ' + error.message);
+                            }
+                        }
+                    };
+                    img.onerror = () => {
+                        reject(`File ${file.name} bukan gambar yang valid`);
+                    };
+                    img.src = URL.createObjectURL(file);
+                });
+            });
+
+            Promise.allSettled(uploadPromises)
+                .then(results => {
+                    const validUrls = [];
+                    const errors = [];
+
+                    results.forEach(result => {
+                        if (result.status === 'fulfilled') {
+                            validUrls.push(result.value);
+                        } else {
+                            errors.push(result.reason);
+                        }
+                    });
+
+                    if (validUrls.length > 0) {
+                        const currentImages = Array.from(document.getElementById('images-preview').children).map(img => img.src);
+                        const allImages = [...currentImages, ...validUrls];
+                        showImagePreviews(allImages);
+
+                        // Simpan mantra untuk update daftar gambar
+                        if (typeof saveMantra === 'function') {
+                            saveMantra(false);
+                        } else {
+                            console.error("Fungsi saveMantra tidak terdefinisi dalam scope ini.");
+                            showToast("Terjadi kesalahan saat memuat gambar: saveMantra tidak terdefinisi.");
+                        }
+                    }
+
+                    if (errors.length > 0) {
+                        showToast('Beberapa gambar gagal diupload:\n' + errors.join('\n'));
+                    }
+                    showLoading(false, 'form-page');
+                    progressContainer.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error("Error uploading images:", error);
+                    showToast('Terjadi kesalahan saat mengunggah gambar: ' + error.message);
+                    showLoading(false, 'form-page');
+                    progressContainer.style.display = 'none';
+                });
+        }
+
+        function showImagePreviews(imageUrls) {
+            const container = document.getElementById('images-preview');
+            container.innerHTML = '';
+
+            imageUrls.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'image-preview';
+                container.appendChild(img);
+            });
+        }
+
+        function editCurrentMantra() {
+            if (currentMantraId) {
+                showPage('form-page');
+            } else {
+                showToast('Tidak ada mantra yang dipilih untuk diedit.');
+            }
+        }
+
+        function deleteMantra() {
+            if (!currentMantraId) {
+                showToast('Tidak ada mantra yang dipilih untuk dihapus.');
+                return;
+            }
+
+            if (confirm('Apakah Anda yakin ingin menghapus mantra ini?')) {
+                showLoading(true, 'form-page');
+
+                database.ref(`users/${currentUserId}/mantras/${currentMantraId}`).remove()
+                    .then(() => {
+                        currentMantraId = null;
+                        loadMantras();
+                        showPage('contents-page');
+                        showLoading(false, 'form-page');
+                        showToast('Mantra berhasil dihapus!');
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting mantra:", error);
+                        showToast('Gagal menghapus mantra. Silakan coba lagi.');
+                        showLoading(false, 'form-page');
+                    });
+            }
+        }
+
+        /**
+         * Reads the given text aloud using Speech Synthesis, with improved number pronunciation.
+         * @param {string} originalText The text to be read.
+         */
+        function readText(originalText) {
+            if ('speechSynthesis' in window) {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+
+                // Improved number pronunciation for 0-99
+                let processedText = originalText.replace(/\b(\d+)\b/g, (match) => {
+                    const number = parseInt(match, 10);
+                    const numWords = {
+                        0: 'nol', 1: 'satu', 2: 'dua', 3: 'tiga', 4: 'empat', 5: 'lima',
+                        6: 'enam', 7: 'tujuh', 8: 'delapan', 9: 'sembilan', 10: 'sepuluh',
+                        11: 'sebelas', 12: 'dua belas', 13: 'tiga belas', 14: 'empat belas',
+                        15: 'lima belas', 16: 'enam belas', 17: 'tujuh belas', 18: 'delapan belas',
+                        19: 'sembilan belas', 20: 'dua puluh', 30: 'tiga puluh',
+                        40: 'empat puluh', 50: 'lima puluh', 60: 'enam puluh', 70: 'tujuh puluh',
+                        80: 'delapan puluh', 90: 'sembilan puluh'
+                    };
+
+                    if (number >= 0 && number < 20) {
+                        return numWords[number] || match;
+                    } else if (number >= 20 && number < 100) {
+                        const tens = Math.floor(number / 10) * 10;
+                        const units = number % 10;
+                        if (units === 0) {
+                            return numWords[tens] || match;
+                        } else {
+                            return `${numWords[tens]} ${numWords[units] || ''}`.trim();
+                        }
+                    }
+                    return match; // Keep as digits for larger or unrecognized numbers
+                });
+
+                // Gantikan huruf kapital semua (2 huruf atau lebih) dengan versi non-per-huruf
+                processedText = processedText.replace(/\b([A-Z]{2,})\b/g, match => {
+                    const replacements = {
+                        "AI": "Artificial Intelligence",
+                        "NASA": "nasa", // dibaca sebagai kata, bukan huruf satuan
+                        "CPU": "si pi yu",
+                        "GPU": "ji pi yu"
+                    };
+                    return replacements[match] || match.toLowerCase();
+                });
+
+
+                const utterance = new SpeechSynthesisUtterance(processedText);
+                utterance.lang = 'id-ID';
+
+                // Pilih suara Indonesia jika tersedia
+                const voices = speechSynthesis.getVoices();
+                utterance.voice = voices.find(v => v.lang === 'id-ID') || null;
+
+                speechSynthesis.speak(utterance);
+            } else {
+                showToast('Text-to-speech tidak didukung di browser Anda');
+            }
+        }
+
+function readMantra() {
+            const text = quillEditor.root.textContent;
+            readText(text);
+        }
+
+        function readCurrentMantra() {
+            const text = document.getElementById('view-content').textContent;
+            readText(text);
+        }
+
+        function readContentsList() {
+            const contentsListElement = document.getElementById('contents-list');
+            if (contentsListElement && contentsListElement.children.length > 0) {
+                let fullText = '';
+                contentsListElement.querySelectorAll('.mantra-item > span').forEach(item => {
+                    fullText += item.textContent + '. ';
+                });
+                readText(fullText);
+            } else {
+                showToast('Daftar isi kosong.');
+            }
+        }
+
+        function toggleSpeechInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                showToast('Speech recognition tidak didukung di browser Anda');
+                return;
+            }
+
+            if (!speechRecognition) {
+                speechRecognition = new webkitSpeechRecognition();
+                speechRecognition.continuous = false;
+                speechRecognition.interimResults = false;
+                speechRecognition.lang = 'id-ID';
+
+                speechRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    const range = quillEditor.getSelection();
+                    if (range) {
+                        quillEditor.insertText(range.index, transcript + ' ');
+                    } else {
+                        quillEditor.insertText(quillEditor.getLength(), transcript + ' ');
+                    }
+                    saveMantra(false);
+                };
+
+                speechRecognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error === 'no-speech') {
+                        showToast('Tidak ada suara terdeteksi. Silakan coba lagi.');
+                    } else if (event.error === 'not-allowed') {
+                        showToast('Akses mikrofon ditolak. Izinkan akses di pengaturan browser Anda.');
+                    }
+                };
+
+                speechRecognition.onend = () => {
+                    console.log('Speech recognition berakhir.');
+                };
+            }
+
+            if (speechRecognition._isListening) {
+                speechRecognition.stop();
+                console.log('Speech recognition dihentikan.');
+                speechRecognition._isListening = false;
+            } else {
+                speechRecognition.start();
+                console.log('Speech recognition dimulai. Silakan berbicara...');
+                speechRecognition._isListening = true;
+            }
+        }
+
+        function backupData() {
+            if (!currentUserId) {
+                showToast('Anda harus login untuk melakukan backup data.');
+                return;
+            }
+
+            const mantrasRef = getMantrasRef();
+            if (!mantrasRef) return;
+
+            showLoading(true, 'main-page');
+
+            mantrasRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    const jsonString = JSON.stringify(data);
+                    const filename = `kitab_mantra_backup_${new Date().toISOString().split('T')[0]}.json`;
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    saveAs(blob, filename);
+                    showLoading(false, 'main-page');
+                    showToast('Backup data berhasil!');
+                })
+                .catch((error) => {
+                    console.error("Error backing up data:", error);
+                    showToast('Gagal melakukan backup data. Silakan coba lagi.');
+                    showLoading(false, 'main-page');
+                });
+        }
+
+        function restoreData() {
+            document.getElementById('restore-data-input').click();
+        }
+
+        function handleRestore(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (!currentUserId) {
+                    showToast('Anda harus login untuk memulihkan data.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (typeof importedData === 'object' && importedData !== null) {
+                            if (confirm('Apakah Anda yakin ingin memulihkan data? Data yang ada akan ditimpa.')) {
+                                showLoading(true, 'main-page');
+                                const mantrasRef = getMantrasRef();
+                                mantrasRef.set(importedData)
+                                    .then(() => {
+                                        showToast('Data berhasil dipulihkan!');
+                                        loadMantras();
+                                        showLoading(false, 'main-page');
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error restoring data:", error);
+                                        showToast('Gagal memulihkan data. Silakan coba lagi.');
+                                        showLoading(false, 'main-page');
+                                    });
+                            }
+                        } else {
+                            showToast('File backup tidak valid.');
+                        }
+                    } catch (error) {
+                        console.error("Error parsing backup file:", error);
+                        showToast('Terjadi kesalahan saat membaca file backup.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const importedMantras = JSON.parse(e.target.result);
+                            if (Array.isArray(importedMantras)) {
+                                if (!currentUserId) {
+                                    showToast('Anda harus login untuk mengimpor data.');
+                                    return;
+                                }
+
+                                if (confirm(`Anda akan mengimpor ${importedMantras.length} mantra. Lanjutkan?`)) {
+                                    showLoading(true, 'contents-page');
+
+                                    const mantrasRef = getMantrasRef();
+                                    const importPromises = importedMantras.map(mantra => {
+                                        return mantrasRef.push().set({
+                                            title: mantra.title || '',
+                                            content: mantra.content || '',
+                                            images: mantra.images || [],
+                                            updatedAt: mantra.updatedAt || new Date().toLocaleString('id-ID')
+                                        });
+                                    });
+
+                                    Promise.all(importPromises)
+                                        .then(() => {
+                                            showToast('Data mantra berhasil diimpor!');
+                                            loadMantras();
+                                            showLoading(false, 'contents-page');
+                                        })
+                                        .catch((error) => {
+                                            console.error("Error importing data:", error);
+                                            showToast('Gagal mengimpor beberapa data. Silakan coba lagi.');
+                                            showLoading(false, 'contents-page');
+                                        });
+                                }
+                            } else {
+                                showToast('Format file JSON tidak valid. Harap pilih file backup yang benar.');
+                            }
+                        } catch (error) {
+                            showToast('Gagal membaca file JSON. Pastikan file tidak rusak.');
+                            console.error('Error importing data:', error);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        async function importFromDoc(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (!currentUserId) {
+                    showToast('Anda harus login untuk mengimpor dokumen.');
+                    return;
+                }
+
+                showLoading(true, 'main-page');
+
+                try {
+                    const result = await mammoth.extractRawText({
+                        arrayBuffer: await file.arrayBuffer()
+                    });
+                    const text = result.value;
+                    const newMantra = {
+                        title: file.name.replace(/\.docx$/, '').trim(),
+                        content: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+                        images: [],
+                        updatedAt: new Date().toLocaleString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    };
+
+                    const mantrasRef = getMantrasRef();
+                    const newMantraRef = await mantrasRef.push();
+
+                    // Cari gambar di dalam dokumen
+                    const imageResult = await mammoth.extractRawText({
+                        arrayBuffer: await file.arrayBuffer(),
+                        convertImageToDataUrls: {
+                            imgStyle: "base64"
+                        }
+                    });
+                    const imageMatches = imageResult.value.match(/<img[^>]+src="data:image\/(png|jpeg|gif);base64,([^"]+)"[^>]*>/g);
+
+                    if (imageMatches) {
+                        const uploadPromises = imageMatches.map(async (imgTag, index) => {
+                            const base64Data = imgTag.split(',')[1];
+                            const byteString = atob(base64Data);
+                            const ab = new ArrayBuffer(byteString.length);
+                            const ia = new Uint8Array(ab);
+                            for (let i = 0; i < byteString.length; i++) {
+                                ia[i] = byteString.charCodeAt(i);
+                            }
+                            const blob = new Blob([ab]);
+                            const imageName = `doc_image_${newMantraRef.key}_${index + 1}`;
+                            try {
+                                const imageUrl = await uploadImageToCloudinary(blob, imageName);
+                                return imageUrl;
+                            } catch (error) {
+                                console.error(`Gagal mengunggah gambar dari DOC: ${imageName}`, error);
+                                return null;
+                            }
+                        });
+
+                        const uploadedImageUrls = (await Promise.all(uploadPromises)).filter(url => url !== null);
+                        newMantra.images = uploadedImageUrls;
+                    }
+
+                    await newMantraRef.set(newMantra);
+                    showToast('Dokumen berhasil diimpor sebagai mantra baru!');
+                    loadMantras();
+                    showLoading(false, 'main-page');
+
+                } catch (error) {
+                    console.error('Gagal mengimpor dokumen:', error);
+                    showToast('Gagal mengimpor dokumen. Pastikan file adalah .docx yang valid.');
+                    showLoading(false, 'main-page');
+                }
+            }
+        }
+
+        function showLoading(show, pageId) {
+            const page = document.getElementById(pageId);
+            if (!page) return;
+
+            if (show) {
+                const loader = document.createElement('div');
+                loader.className = 'loading-spinner';
+                loader.style.margin = '20px auto';
+                loader.style.display = 'block';
+                loader.id = 'page-loader';
+                page.appendChild(loader);
+            } else {
+                const loader = document.getElementById('page-loader');
+                if (loader) loader.remove();
+            }
+        }
+
+        // Fingerprint Authentication
+        async function checkFingerprintAvailability() {
+            if ('PublicKeyCredential' in window && typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+                try {
+                    fingerprintAvailable = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+                    // Hanya tampilkan jika pengguna logout DAN fitur diaktifkan
+                    updateLoginStatus(currentUserId !== null, currentUserId ? auth.currentUser.email : '');
+                } catch (error) {
+                    console.error("Error checking fingerprint availability:", error);
+                    fingerprintAvailable = false;
+                }
+            } else {
+                fingerprintAvailable = false;
+            }
+        }
+
+        async function attemptFingerprintLogin() {
+            if (!fingerprintAvailable || !isFingerprintActive) {
+                showToast('Fitur fingerprint tidak tersedia atau dinonaktifkan.');
+                return;
+            }
+
+            document.getElementById('fingerprint-login-text').style.display = 'none';
+            document.getElementById('fingerprint-login-spinner').style.display = 'inline-block';
+
+            try {
+                const credential = await navigator.credentials.get({
+                    publicKey: {
+                        challenge: new Uint8Array(32),
+                        timeout: 60000,
+                        rpId: window.location.hostname,
+                        allowCredentials: [],
+                        userVerification: 'required'
+                    }
+                });
+
+                if (credential) {
+                    // Dalam aplikasi nyata, Anda akan mengirim kredensial ini ke server Anda untuk verifikasi.
+                    // Untuk simulasi ini, kita akan menganggap berhasil.
+                    showToast('Login dengan fingerprint berhasil! (Simulasi)');
+                    // Secara otomatis masuk ke pengguna terakhir yang diketahui atau meminta email/kata sandi jika tidak ada
+                    // Bagian ini mungkin memerlukan integrasi backend untuk login sidik jari yang sebenarnya aman
+                    // Untuk saat ini, kita akan mensimulasikan login yang berhasil untuk demonstrasi.
+                    // Jika Anda ingin login otomatis setelah sidik jari, Anda harus menyimpan kredensial pengguna (misalnya, email) secara aman.
+                    // Untuk tujuan demo ini, kita bisa berasumsi login berhasil jika fingerprint sukses.
+                    // Namun, untuk keamanan, ini biasanya akan memicu alur login Firebase yang sebenarnya di backend.
+                    // Karena kita tidak memiliki backend untuk memverifikasi kredensial WebAuthn, kita akan melompati langkah itu.
+                    // Jika Anda memiliki email dan password yang disimpan di lokal atau tahu siapa pengguna terakhir:
+                    const lastLoggedInEmail = localStorage.getItem('lastLoggedInEmail'); // Misalnya Anda menyimpan email
+                    if (lastLoggedInEmail) {
+                         auth.signInWithEmailAndPassword(lastLoggedInEmail, 'PASSWORD_PALSU_ATAU_DARI_SERVER_SETELAH_VERIFIKASI_FINGERPRINT') // Ini tidak aman tanpa backend nyata
+                             .then((userCredential) => {
+                                 currentUserId = userCredential.user.uid;
+                                 updateLoginStatus(true, userCredential.user.email);
+                                 loadMantras();
+                                 showPage('home-page');
+                             })
+                             .catch((error) => {
+                                 console.error("Simulated fingerprint login failed (Firebase sign-in):", error);
+                                 showToast('Terjadi kesalahan saat masuk setelah verifikasi fingerprint. Silakan coba lagi.');
+                                 document.getElementById('auth-message').textContent = 'Fingerprint berhasil, namun login Firebase gagal.';
+                             });
+                    } else {
+                        // Jika tidak ada email yang disimpan, arahkan ke halaman login biasa.
+                        showToast('Login fingerprint berhasil, silakan masukkan email/password untuk menyelesaikan login.');
+                        showPage('auth-page'); // Kembali ke halaman login jika tidak ada email yang disimpan
+                    }
+                } else {
+                    showToast('Login dengan fingerprint gagal.');
+                }
+            } catch (error) {
+                console.error("Fingerprint login error:", error);
+                showToast('Login dengan fingerprint dibatalkan atau gagal.');
+            } finally {
+                document.getElementById('fingerprint-login-text').style.display = 'inline';
+                document.getElementById('fingerprint-login-spinner').style.display = 'none';
+            }
+        }
+
+        // Authentication Handlers
+document.getElementById('login-btn').addEventListener('click', () => {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const authMessage = document.getElementById('auth-message');
+
+    if (!email || !password) {
+        authMessage.textContent = "Email dan password harus diisi.";
+        return;
+    }
+
+    document.getElementById('login-btn-text').style.display = 'none';
+    document.getElementById('login-spinner').style.display = 'inline-block';
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            authMessage.textContent = "Login berhasil!";
+            currentUserId = userCredential.user.uid;
+            updateLoginStatus(true, email);
+            localStorage.setItem('lastLoggedInEmail', email);
+            loadMantras();
+            showPage('home-page');
+        })
+        .catch((error) => {
+            authMessage.textContent = "Login gagal: " + error.message;
+            console.error("Login Error:", error);
+        })
+        .finally(() => {
+            document.getElementById('login-btn-text').style.display = 'inline';
+            document.getElementById('login-spinner').style.display = 'none';
+        });
+});
+
+
+        document.getElementById('fingerprint-login-btn').addEventListener('click', attemptFingerprintLogin);
+
+        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const authMessage = document.getElementById('auth-message');
+
+            if (email) {
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        authMessage.textContent = "Email reset password telah dikirim ke " + email;
+                    })
+                    .catch((error) => {
+                        authMessage.textContent = "Gagal mengirim email reset password: " + error.message;
+                        console.error("Password Reset Error:", error);
+                    });
+            } else {
+                authMessage.textContent = "Harap masukkan email Anda untuk mereset password.";
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                currentUserId = null;
+                mantras = [];
+                updateLoginStatus(false);
+                showPage('auth-page');
+                document.getElementById('auth-email').value = '';
+                document.getElementById('auth-password').value = '';
+                document.getElementById('auth-message').textContent = '';
+                checkFingerprintAvailability(); // Perbarui status fingerprint setelah logout
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                showToast('Gagal logout. Silakan coba lagi.');
+            });
+        });
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUserId = user.uid;
+                updateLoginStatus(true, user.email);
+                loadMantras();
+                showPage('home-page');
+            } else {
+                currentUserId = null;
+                updateLoginStatus(false);
+                showPage('auth-page');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Register custom fonts
+            const Font = Quill.import('formats/font');
+            Font.whitelist = ['serif', 'monospace', 'sans-serif', 'poppins', 'tahoma']; // tambahkan font Poppins dan Tahoma
+            Quill.register(Font, true);
+
+            const ColorStyle = Quill.import('attributors/style/color');
+            const BackgroundStyle = Quill.import('attributors/style/background');
+            Quill.register(ColorStyle, true);
+            Quill.register(BackgroundStyle, true);
+
+
+            quillEditor = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Tulis mantra Anda di sini...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['blockquote', 'code-block'],
+                        [{ 'align': [] }],
+                        ['clean'],
+                        ['image'],
+                        // Tambahkan pilihan font kustom
+                        [{ 'font': Font.whitelist }],
+                        [{ 'size': ['small', false, 'large', 'huge'] }],
+                        // Tambahkan pilihan warna teks dan background
+                        [{ 'color': [] }, { 'background': [] }]
+                    ]
+                }
+            });
+
+            quillEditor.on('text-change', () => {
+                if (document.getElementById('form-page').classList.contains('active')) {
+                    saveMantra(false);
+                }
+            });
+
+            document.getElementById('image-upload').addEventListener('change', uploadImages);
+
+            checkFingerprintAvailability();
+
+            const fingerprintToggle = document.getElementById('fingerprint-toggle');
+            if (fingerprintToggle) {
+                fingerprintToggle.checked = isFingerprintActive;
+                fingerprintToggle.addEventListener('change', function() {
+                    isFingerprintActive = this.checked;
+                    localStorage.setItem('isFingerprintActive', isFingerprintActive);
+                    checkFingerprintAvailability(); // Update fingerprint button visibility immediately
+                });
+            }
+
+            // --- Mulai kode revisi untuk Android
+            // Periksa jika antarmuka Android tersedia sebelum mencoba menggunakannya
+            if (typeof Android !== 'undefined' && Android !== null) {
+                const emailField = document.getElementById('auth-email');
+                const passwordField = document.getElementById('auth-password');
+
+                if (emailField) {
+                    // Isi email secara otomatis jika ada dari antarmuka Android
+                    const savedEmail = Android.getSavedEmail();
+                    if (savedEmail && savedEmail.trim() !== '') {
+                        emailField.value = savedEmail;
+                    }
+                }
+                
+                // Peringatan: Autofill password tidak disarankan untuk alasan keamanan.
+                // Jika tetap ingin melakukannya, ini adalah contohnya, tetapi sebaiknya dihindari.
+                // if (passwordField) {
+                //     passwordField.value = Android.getSavedPassword();
+                // }
+            }
+            // --- Akhir kode revisi untuk Android
+        });
+
+        // Fungsi ini perlu didefinisikan di scope global agar dapat diakses oleh uploadImages
+        function saveMantra(isManualSave = false) {
+            clearTimeout(autoSaveTimeout);
+
+            autoSaveTimeout = setTimeout(() => {
+                if (!currentUserId) {
+                    if (isManualSave) { // Only show toast if it's a manual save and not logged in
+                        showToast('Anda harus login untuk menyimpan mantra.');
+                    }
+                    return;
+                }
+
+                const now = new Date();
+                const dateString = now.toLocaleString('id-ID', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const mantraData = {
+                    title: document.getElementById('mantra-title').value,
+                    content: quillEditor ? quillEditor.root.innerHTML : '',
+                    updatedAt: dateString,
+                    images: Array.from(document.getElementById('images-preview').children).map(img => img.src)
+                };
+
+                if (!mantraData.title || mantraData.title.trim() === '') {
+                    if (isManualSave) {
+                        showToast('Judul mantra tidak boleh kosong!');
+                    }
+                    return;
+                }
+
+                const mantrasRef = getMantrasRef();
+                if (!mantrasRef) return;
+
+                showLoading(true, 'form-page');
+
+                if (currentMantraId) {
+                    // Update existing mantra
+                    database.ref(`users/${currentUserId}/mantras/${currentMantraId}`).update(mantraData)
+                        .then(() => {
+                            document.getElementById('last-updated').textContent = dateString;
+                            if (isManualSave) {
+                                showToast('Mantra berhasil diperbarui!');
+                                // Kosongkan kanvas setelah disimpan
+                                document.getElementById('mantra-title').value = '';
+                                if (quillEditor) quillEditor.setContents([]);
+                                document.getElementById('images-preview').innerHTML = '';
+                                document.getElementById('image-upload').value = '';
+                                currentMantraId = null; // Reset currentMantraId agar bisa membuat baru
+                                showPage('contents-page'); // Kembali ke daftar isi
+                            }
+                            loadMantras();
+                            showLoading(false, 'form-page');
+                        })
+                        .catch((error) => {
+                            console.error("Error updating mantra:", error);
+                            showToast('Gagal memperbarui mantra. Silakan coba lagi.');
+                            showLoading(false, 'form-page');
+                        });
+                } else {
+                    // Create new mantra
+                    const newMantraRef = mantrasRef.push();
+                    newMantraRef.set(mantraData)
+                        .then(() => {
+                            currentMantraId = newMantraRef.key;
+                            document.getElementById('last-updated').textContent = dateString;
+                            if (isManualSave) {
+                                showToast('Mantra baru berhasil disimpan!');
+                                // Kosongkan kanvas setelah disimpan
+                                document.getElementById('mantra-title').value = '';
+                                if (quillEditor) quillEditor.setContents([]);
+                                document.getElementById('images-preview').innerHTML = '';
+                                document.getElementById('image-upload').value = '';
+                                currentMantraId = null; // Reset currentMantraId agar bisa membuat baru
+                                showPage('contents-page'); // Kembali ke daftar isi
+                            }
+                            loadMantras();
+                            showLoading(false, 'form-page');
+                        })
+                        .catch((error) => {
+                            console.error("Error saving mantra:", error);
+                            showToast('Gagal menyimpan mantra baru. Silakan coba lagi.');
+                            showLoading(false, 'form-page');
+                        });
+                }
+            }, isManualSave ? 0 : 1000);
+        }
+  
+if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+
+                    .then(reg => {
+                        console.log('Service Worker registered! Scope:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.log('Service Worker registration failed:', err);
+                    });
+            });
+        }
+  </script>
+</body>
+</html>
